@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="core.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="sseTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SimdProgrammingLesson.h" />
