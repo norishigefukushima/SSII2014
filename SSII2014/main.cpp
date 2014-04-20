@@ -11,7 +11,6 @@
 <immintrin.h> AVX
 */
 
-
 #include <nmmintrin.h>
 #include <iostream>
 #include <vector>
@@ -53,7 +52,14 @@ void releaseData(uchar* data)
 
 void transpose(float* src, float* dest, int w, int h)
 {
-	;
+	//naive imprimentation
+	for(int j=0;j<h;j++)
+	{
+		for(int i=0;i<w;i++)
+		{
+			 dest[h*i+j] = src[w*j+i];
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////
@@ -405,6 +411,7 @@ void iirfilter_sse(float* src, float* dest, int w, int h, float a)
 	delete[] srct;
 }
 
+
 void Gaussianfilter(float* src, float* dest, int w, int h, int r)
 {
 	float sigma2 = -2.0*r/3.0;
@@ -446,7 +453,7 @@ void Gaussianfilter(float* src, float* dest, int w, int h, int r)
 
 void Sobelfilter(float* src, float* dest, int w, int h, int r)
 {
-	;
+	;//dummy
 }
 
 void forkjoin_ex(float* src, float* dest0, float* dest1, float* dest2, int w, int h, int r)
