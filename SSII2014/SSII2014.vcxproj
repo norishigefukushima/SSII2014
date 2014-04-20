@@ -139,12 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="core.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="sseTest.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="SimdProgrammingLesson.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
