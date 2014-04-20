@@ -87,6 +87,31 @@ void transpose(float* src, float* dest, int w, int h)
 	}
 }
 
+void transpose_sse(float* src, float* dest, int w, int h)
+{
+	const int ww = 2*w;
+	const int www = 3*w;
+	//naive imprimentation
+	for(int j=0;j<h;j+=4)
+	{
+		float* s = src+w*j;
+		for(int i=0;i<w;i+=4)
+		{
+			//dest[h*i+j]
+			__m128 m0 = _mm_load_ps(s+i);
+			__m128 m1 = _mm_load_ps(s+w+i);
+			__m128 m2 = _mm_load_ps(s+ww+i);
+			__m128 m3 = _mm_load_ps(s+www+i);
+
+			_MM_TRANSPOSE4_PS(m0,m1,m2,m3);
+			_mm_store_ps(dest+h*i+j,m0);
+			_mm_store_ps(dest+h*(i+1)+j,m1);
+			_mm_store_ps(dest+h*(i+2)+j,m2);
+			_mm_store_ps(dest+h*(i+3)+j,m3);
+		}
+	}
+}
+
 ///////////////////////////////////////////////////////////
 
 
@@ -510,13 +535,8 @@ void forkjoin_ex_omp(float* src, float* dest0, float* dest1, float* dest2, int w
 int main()
 {
 	timer t;
-
-	t.start();
-	
-	t.stop();
-
 	//set up data///////////////////////////////
-	const int width = 1014;
+	const int width = 1024;
 	const int height = 1024;
 	const int size = width*height;
 
@@ -531,7 +551,6 @@ int main()
 	float* dataf_b = createAlign16Data_32f(size);
 	float* dataf_dest = createAlign16Data_32f(size);
 	float* dataf_dest2 = createAlign16Data_32f(size);
-
 
 	//main part ///////////////////////////////
 	//add
