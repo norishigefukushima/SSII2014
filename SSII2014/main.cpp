@@ -20,6 +20,31 @@ typedef unsigned char uchar ;
 
 //for data alloc/////////////////////////////////////////////
 
+//timer for windows
+#include <windows.h>
+class timer
+{
+	LARGE_INTEGER freq;
+	LARGE_INTEGER begin;
+	LARGE_INTEGER end;
+public:
+	timer()
+	{
+		;
+	}
+	void start()
+	{
+		QueryPerformanceFrequency(&freq );
+		QueryPerformanceCounter(&begin );
+	}
+	void stop()
+	{
+		QueryPerformanceCounter(&end );
+
+		printf( "%f\n", ( double )( end.QuadPart - begin.QuadPart ) / freq.QuadPart );
+	}
+};
+
 uchar* createAlign16Data_8u(int size)
 {
 	uchar* ret = (uchar*)_mm_malloc(sizeof(uchar)*size,  16);
@@ -482,9 +507,14 @@ void forkjoin_ex_omp(float* src, float* dest0, float* dest1, float* dest2, int w
 	}
 }
 
-
 int main()
 {
+	timer t;
+
+	t.start();
+	
+	t.stop();
+
 	//set up data///////////////////////////////
 	const int width = 1014;
 	const int height = 1024;
