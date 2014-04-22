@@ -581,7 +581,8 @@ int main()
 	float* dataf_dest = createAlign16Data_32f(size);
 	float* dataf_dest2 = createAlign16Data_32f(size);
 
-	
+	for(int i=0;i<1000000;i++)
+	boxfilter_sse_omp(dataf_a,dataf_dest,width,height,r);
 
 	//main part ///////////////////////////////
 	//add
