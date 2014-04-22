@@ -24,12 +24,19 @@ typedef unsigned char uchar ;
 #include <windows.h>
 class timer
 {
+	string message;
 	LARGE_INTEGER freq;
 	LARGE_INTEGER begin;
 	LARGE_INTEGER end;
 public:
 	timer()
 	{
+		message="";
+		;
+	}
+	timer(string message_)
+	{
+		message=message_;
 		;
 	}
 	void start()
@@ -41,7 +48,7 @@ public:
 	{
 		QueryPerformanceCounter(&end );
 
-		printf( "%f\n", ( double )( end.QuadPart - begin.QuadPart ) / freq.QuadPart );
+		printf( "%f ms\n", ( double )( end.QuadPart - begin.QuadPart ) / freq.QuadPart );
 	}
 };
 
@@ -91,13 +98,35 @@ void transpose_sse(float* src, float* dest, int w, int h)
 {
 	const int ww = 2*w;
 	const int www = 3*w;
-	//naive imprimentation
 	for(int j=0;j<h;j+=4)
 	{
 		float* s = src+w*j;
 		for(int i=0;i<w;i+=4)
 		{
-			//dest[h*i+j]
+			__m128 m0 = _mm_load_ps(s+i);
+			__m128 m1 = _mm_load_ps(s+w+i);
+			__m128 m2 = _mm_load_ps(s+ww+i);
+			__m128 m3 = _mm_load_ps(s+www+i);
+
+			_MM_TRANSPOSE4_PS(m0,m1,m2,m3);
+			_mm_store_ps(dest+h*i+j,m0);
+			_mm_store_ps(dest+h*(i+1)+j,m1);
+			_mm_store_ps(dest+h*(i+2)+j,m2);
+			_mm_store_ps(dest+h*(i+3)+j,m3);
+		}
+	}
+}
+
+void transpose_sse_omp(float* src, float* dest, int w, int h)
+{
+	const int ww = 2*w;
+	const int www = 3*w;
+#pragma omp parallel for
+	for(int j=0;j<h;j+=4)
+	{
+		float* s = src+w*j;
+		for(int i=0;i<w;i+=4)
+		{
 			__m128 m0 = _mm_load_ps(s+i);
 			__m128 m1 = _mm_load_ps(s+w+i);
 			__m128 m2 = _mm_load_ps(s+ww+i);
@@ -200,7 +229,7 @@ float sum_omp(float* src, int num)
 float sum_omp_true(float* src, int num)
 {
 	float ret=0.0f;
-#pragma omp parallel for (+:ret)
+#pragma omp parallel for reduction(+:ret)
 	for(int i=0;i<num;i++)
 	{
 		ret += src[i];
@@ -552,6 +581,8 @@ int main()
 	float* dataf_dest = createAlign16Data_32f(size);
 	float* dataf_dest2 = createAlign16Data_32f(size);
 
+	
+
 	//main part ///////////////////////////////
 	//add
 	add(datau_a,datau_b, datau_dest, size);
@@ -597,6 +628,26 @@ int main()
 	forkjoin_ex(dataf_a,dataf_b,dataf_dest,dataf_dest2,width,height, r);
 	
 	cout<<"fork-join OK"<<endl;
+
+	const int iter = 100;
+
+	t.start();
+	for(int i=0;i<iter;i++)
+		transpose(dataf_a,dataf_dest,width,height);
+	t.stop();
+
+	t.start();
+	for(int i=0;i<iter;i++)
+	transpose_sse(dataf_a,dataf_dest,width,height);
+	t.stop();
+
+	t.start();
+	for(int i=0;i<iter;i++)
+	transpose_sse_omp(dataf_a,dataf_dest,width,height);
+	t.stop();
+
+	cout<<"transpose OK"<<endl;
+	
 
 	//free data ///////////////////////////////
 	releaseData(dataf_a);
