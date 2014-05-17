@@ -1,57 +1,8 @@
-/*
-<mmintrin.h>  MMX
-<xmmintrin.h> SSE
-<emmintrin.h> SSE2
-<pmmintrin.h> SSE3
-<tmmintrin.h> SSSE3
-<smmintrin.h> SSE4.1
-<nmmintrin.h> SSE4.2
-<ammintrin.h> SSE4A
-<wmmintrin.h> AES
-<immintrin.h> AVX
-*/
+#include "function.h"
 
-#include <nmmintrin.h>
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
-typedef unsigned char uchar ;
+
 
 //for data alloc/////////////////////////////////////////////
-
-//timer for windows
-#include <windows.h>
-class timer
-{
-	string message;
-	LARGE_INTEGER freq;
-	LARGE_INTEGER begin;
-	LARGE_INTEGER end;
-public:
-	timer()
-	{
-		message="";
-		;
-	}
-	timer(string message_)
-	{
-		message=message_;
-		;
-	}
-	void start()
-	{
-		QueryPerformanceFrequency(&freq );
-		QueryPerformanceCounter(&begin );
-	}
-	void stop()
-	{
-		QueryPerformanceCounter(&end );
-
-		printf( "%f ms\n", ( double )( end.QuadPart - begin.QuadPart ) / freq.QuadPart );
-	}
-};
-
 uchar* createAlign16Data_8u(int size)
 {
 	uchar* ret = (uchar*)_mm_malloc(sizeof(uchar)*size,  16);
@@ -561,8 +512,23 @@ void forkjoin_ex_omp(float* src, float* dest0, float* dest1, float* dest2, int w
 	}
 }
 
+void createHisogram(uchar* src, int* dest, int size)
+{
+	memset(dest,0,sizeof(int)*size);
+	for(int i=0;i<size;i++)
+	{
+		dest[src[i]]++;
+	}
+}
+
+#ifdef _OPENCV_
+void opencvtest();
+#endif
 int main()
 {
+#ifdef _OPENCV_
+opencvtest();
+#endif
 	timer t;
 	//set up data///////////////////////////////
 	const int width = 1024;
@@ -580,9 +546,6 @@ int main()
 	float* dataf_b = createAlign16Data_32f(size);
 	float* dataf_dest = createAlign16Data_32f(size);
 	float* dataf_dest2 = createAlign16Data_32f(size);
-
-	for(int i=0;i<1000000;i++)
-	boxfilter_sse_omp(dataf_a,dataf_dest,width,height,r);
 
 	//main part ///////////////////////////////
 	//add
@@ -649,6 +612,13 @@ int main()
 
 	cout<<"transpose OK"<<endl;
 	
+
+	t.start();
+	for(int i=0;i<iter;i++)
+	transpose_sse_omp(dataf_a,dataf_dest,width,height);
+	t.stop();
+
+	cout<<"transpose OK"<<endl;
 
 	//free data ///////////////////////////////
 	releaseData(dataf_a);
